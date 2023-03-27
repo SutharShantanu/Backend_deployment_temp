@@ -1,23 +1,31 @@
 const express = require("express");
-const { connection } = require("./db");
-const { userRouter } = require(".//Routes/user.routes");
-const { auth } = require("./Middlewares/auth.middlewares");
-const { noteRouter } = require("./Routes/note.routes");
-const cors = require("cors");
+const {connection} = require("./configs/db")
+const { userRouter} = require("./routes/User.route");
+const {postRouter}= require("./routes/Post.route");
+const {authenticate} = require("./middlewares/authenticate.middleware");
+require("dotenv").config();
+
+const cors=require("cors");
 const app = express();
+app.use(cors({
+    origin: "*"
+}))
 app.use(express.json());
-app.use(cors());
 
-app.use("/users", userRouter);
-app.use(auth);
-app.use("/notes", noteRouter);
+app.get("/", (req, res)=>{
+    res.status(200).send("Home Page");
+});
 
-app.listen(4500, async () => {
+app.use("/users",userRouter);
+app.use(authenticate);
+app.use("/posts",postRouter);
+
+app.listen(process.env.port,async()=>{
     try {
         await connection;
         console.log("Connected to mongoDB");
     } catch (error) {
-        console.log({ msg: error.message });
+        console.log("Trouble connecting to mongoDB");
     }
-    console.log(`server listening on port 4500`);
-});
+    console.log(`listening on port ${process.env.port}`);
+})
